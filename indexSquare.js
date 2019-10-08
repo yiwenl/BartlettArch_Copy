@@ -1,16 +1,5 @@
 const regl = require('regl')()
 
-const glm = require('gl-matrix')
-var mat4 = glm.mat4
-
-var projectionMatrix = mat4.create()
-var fov = 75 * Math.PI / 180
-var aspect = window.innerWidth / window.innerHeight
-mat4.perspective(projectionMatrix, fov, aspect, 0.01, 1000.0)
-
-var viewMatrix = mat4.create()
-mat4.lookAt(viewMatrix, [0, 0, 2], [0, 0, 0], [0, 1, 0])
-
 var currTime = 0
 
 const clear = () => {
@@ -32,8 +21,6 @@ attribute vec3 aPosition;
 attribute vec3 color;
 
 uniform float uTime;
-uniform mat4 uProjectionMatrix;
-uniform mat4 uViewMatrix;
 
 varying vec3 vColor;
 
@@ -43,6 +30,7 @@ void main() {
   
   // add the time to the 'x' only
   // pos.x += uTime;
+  
 
   float movingRange = 0.0;
   pos.x += sin(uTime) * movingRange;
@@ -54,10 +42,10 @@ void main() {
   scale = scale * 0.5 + 0.5;
   // scale => -1 ~ 1 -> -0.5 ~ 0.5 -> 0 ~ 1
 
-  gl_Position = uProjectionMatrix * uViewMatrix * vec4(pos, 1.0);
+  gl_Position = vec4(pos, 1.0);
   vColor = color;
 }`
-const r = 0.5
+const r = 0.15
 const attributes = {
   aPosition: regl.buffer([
     [-r, r, 0.0],
@@ -81,9 +69,7 @@ const attributes = {
 
 const drawTriangle = regl({
   uniforms: {
-    uTime: regl.prop('time'),
-    uProjectionMatrix: projectionMatrix,
-    uViewMatrix: regl.prop('view')
+    uTime: regl.prop('time')
   },
   frag: fragStr,
   vert: vertStr,
@@ -93,15 +79,9 @@ const drawTriangle = regl({
 
 function render () {
   currTime += 0.01
-  var cameraRadius = 1.0
-  var cameraX = Math.sin(currTime) * cameraRadius
-  var cameraZ = Math.cos(currTime) * cameraRadius
-
-  mat4.lookAt(viewMatrix, [cameraX, 0, cameraZ], [0, 0, 0], [0, 1, 0])
 
   var obj = {
-    time: currTime,
-    view: viewMatrix
+    time: currTime
   }
 
   // console.log('Time :', obj)
